@@ -3,71 +3,54 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KINORA Contributor — Article Editor</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KINORA Contributor Editor</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <style>
-:root{
-  color-scheme:dark;
-  --bg:#0b0d12;--panel:#151a24;--line:#30394a;
-  --muted:#9aa3b2;--white:#f4f5f7;--accent:#c9f06b;
-}
+:root{color-scheme:dark;--bg:#0b0d12;--panel:#151a24;--line:#30394a;--muted:#9aa3b2;--white:#f4f5f7;--accent:#c9f06b}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--white);font-family:system-ui,-apple-system,sans-serif}
-header{padding:17px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#0b0d12;z-index:5}
-.logo{font-size:20px;font-weight:850;letter-spacing:1px}
-.logo span{color:var(--accent)}
-header small{color:var(--muted)}
-main{max-width:850px;margin:auto;padding:20px 15px 90px}
-h1{font-size:25px;margin:10px 0 5px}
-.sub{color:var(--muted);font-size:13px;margin-bottom:25px}
-.section{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:16px;margin:16px 0}
-.section h2{font-size:16px;margin:0 0 14px}
-label{display:block;color:var(--muted);font-size:12px;margin:13px 0 7px}
-input,textarea,select{
- width:100%;background:#0d1119;color:var(--white);
- border:1px solid var(--line);border-radius:9px;padding:12px;
- font:inherit;outline:none;
-}
-input:focus,textarea:focus{border-color:var(--accent)}
-textarea{resize:vertical;min-height:90px}
-button{
- border:0;border-radius:9px;padding:11px 14px;font-weight:700;
- font-size:13px;cursor:pointer;background:var(--accent);color:#11150b;
-}
+body{margin:0;background:var(--bg);color:var(--white);font-family:system-ui,sans-serif}
+header{position:sticky;top:0;z-index:5;background:#0b0d12;border-bottom:1px solid var(--line);padding:15px;display:flex;justify-content:space-between;align-items:center}
+.logo{font-weight:900;font-size:20px;letter-spacing:1px}.logo span{color:var(--accent)}
+header small,.muted{color:var(--muted);font-size:12px}
+main{max-width:850px;margin:auto;padding:20px 14px 100px}
+h1{font-size:25px;margin:8px 0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin:15px 0}
+h2{font-size:16px;margin:0 0 12px}
+label{display:block;color:var(--muted);font-size:12px;margin:12px 0 6px}
+input,textarea,select{width:100%;background:#0d1119;color:var(--white);border:1px solid var(--line);border-radius:9px;padding:12px;font:inherit;min-width:0}
+textarea{resize:vertical;min-height:180px;font-family:monospace;font-size:13px}
+button{background:var(--accent);color:#11150b;border:0;border-radius:9px;padding:10px 13px;font-weight:750;font-size:13px;cursor:pointer}
 button.secondary{background:#252d3b;color:var(--white);border:1px solid var(--line)}
-button.danger{background:#48252a;color:#ffb9bd}
-button:disabled{opacity:.5}
-.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+button.danger{background:#48252a;color:#ffc2c5}
+button:disabled{opacity:.45}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .row>*{flex:1}
-.toolbar{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+.toolbar{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}
 .toolbar button{padding:8px 11px}
-.editor{
- min-height:260px;padding:15px;border-radius:10px;
- border:1px solid var(--line);background:#0d1119;line-height:1.7;
- overflow-wrap:anywhere;
-}
+.section-card{border:1px solid var(--line);border-radius:12px;margin:12px 0;background:#10151e;overflow:hidden}
+.section-head{display:flex;align-items:center;gap:8px;padding:12px}
+.section-head input{font-weight:700}
+.section-head button{flex:0 0 auto}
+.section-body{padding:0 12px 13px}
+.section-body[hidden]{display:none}
+.editor{background:#0b1018;border:1px solid var(--line);border-radius:9px;min-height:190px;padding:13px;line-height:1.7;overflow-wrap:anywhere}
 .editor:focus{outline:1px solid var(--accent)}
-#source{min-height:260px;font-family:monospace;font-size:13px;line-height:1.6}
-.infobox-row,.citation{
- background:#0d1119;border:1px solid var(--line);border-radius:10px;
- padding:11px;margin:9px 0;
-}
-.infobox-row .row{align-items:center}
-.infobox-row input{min-width:0}
-.citation strong{font-size:14px}
-.citation small{display:block;color:var(--muted);margin-top:5px;overflow-wrap:anywhere}
-.status{color:var(--muted);font-size:12px;margin-top:10px}
-.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:20px}
-.actions button{flex:1;min-width:130px}
-#message{padding:12px;border-radius:9px;background:#18251a;color:var(--accent);display:none;margin:15px 0;font-size:13px}
-#modal{display:none;position:fixed;inset:0;background:#000b;z-index:20;align-items:center;justify-content:center;padding:15px}
-.modalbox{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:18px;width:100%;max-width:450px;max-height:90vh;overflow:auto}
-.preview{display:none;background:#fff;color:#222;border-radius:10px;padding:18px;line-height:1.7;overflow-wrap:anywhere}
+.source{min-height:190px;font-family:monospace;font-size:13px;line-height:1.6}
+.infobox-row,.citation{background:#0d1119;border:1px solid var(--line);border-radius:9px;padding:10px;margin:8px 0}
+.infobox-row .row>*{min-width:0}
+.citation small{display:block;color:var(--muted);overflow-wrap:anywhere;margin:5px 0}
+.citation a{color:var(--accent);font-size:12px}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}
+.actions button{flex:1;min-width:125px}
+#message{display:none;background:#18251a;color:var(--accent);padding:12px;border-radius:9px;margin:12px 0;font-size:13px}
+#modal{display:none;position:fixed;inset:0;background:#000c;z-index:10;align-items:center;justify-content:center;padding:14px}
+.modalbox{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:17px;width:100%;max-width:450px;max-height:90vh;overflow:auto}
+.preview{background:#fff;color:#222;padding:18px;border-radius:10px;line-height:1.7;overflow-wrap:anywhere}
 .preview h2,.preview h3{color:#222}
 .preview a{color:#1769aa}
-@media(min-width:650px){main{padding-top:30px}.section{padding:20px}}
+#saveStatus{font-size:12px;color:var(--muted);margin-top:12px}
 </style>
 </head>
 <body>
@@ -78,305 +61,368 @@ button:disabled{opacity:.5}
 
 <main>
  <h1 id="pageTitle">Create an article</h1>
- <div class="sub">Write, reference and submit encyclopedia articles.</div>
-
+ <p class="muted">Write and organize your encyclopedia article.</p>
  <div id="message"></div>
 
- <div class="section">
+ <div class="panel">
   <h2>Article information</h2>
-  <label>Article title</label>
-  <input id="title" placeholder="Enter article title">
-
-  <label>Short description</label>
-  <textarea id="summary" placeholder="A brief description of the subject"></textarea>
-
-  <div class="row">
-   <div>
-    <label>Category</label>
-    <select id="category">
-     <option>General</option>
-     <option>Biography</option>
-     <option>History</option>
-     <option>Science</option>
-     <option>Technology</option>
-     <option>Geography</option>
-     <option>Arts and culture</option>
-     <option>Sports</option>
-    </select>
-   </div>
-  </div>
+  <label>Title</label>
+  <input id="title" placeholder="Article title">
+  <label>Description</label>
+  <textarea id="summary" style="min-height:75px;font-family:inherit" placeholder="Short article description"></textarea>
+  <label>Category</label>
+  <select id="category">
+   <option>General</option><option>Biography</option><option>History</option>
+   <option>Science</option><option>Technology</option><option>Geography</option>
+   <option>Arts and culture</option><option>Sports</option>
+  </select>
  </div>
 
- <div class="section">
+ <div class="panel">
   <h2>Infobox</h2>
-  <div class="sub">Add information such as born, occupation, location, founded, etc.</div>
+  <p class="muted">Add facts such as Born, Occupation, Founded, Location, etc.</p>
   <div id="infoboxRows"></div>
-  <button class="secondary" id="addInfo" type="button">+ Add row</button>
+  <button class="secondary" id="addInfo" type="button">+ Add infobox row</button>
  </div>
 
- <div class="section">
-  <h2>Article body</h2>
-  <div class="toolbar">
-   <button class="secondary" id="visualBtn" type="button">Visual</button>
-   <button class="secondary" id="htmlBtn" type="button">HTML / Source</button>
-   <button class="secondary" id="previewBtn" type="button">Preview</button>
-  </div>
-
-  <div class="toolbar" id="formatTools">
-   <button class="secondary" data-cmd="bold" type="button"><b>B</b></button>
-   <button class="secondary" data-cmd="italic" type="button"><i>I</i></button>
-   <button class="secondary" data-cmd="insertUnorderedList" type="button">• List</button>
-   <button class="secondary" data-cmd="formatBlock" data-value="H2" type="button">Heading</button>
-  </div>
-
-  <div id="visual" class="editor" contenteditable="true">
-   <p>Start writing your article here...</p>
-  </div>
-  <textarea id="source" style="display:none" placeholder="Write HTML or source content here..."></textarea>
-  <div id="preview" class="preview"></div>
-  <div class="status">Use HTML headings such as &lt;h2&gt;Section&lt;/h2&gt;. Use &lt;reflist&gt; where the reference list should appear.</div>
+ <div class="panel">
+  <h2>Article contents</h2>
+  <p class="muted">Each section can be expanded, collapsed and edited independently. The introduction stays separate.</p>
+  <div id="sections"></div>
+  <button class="secondary" id="addSection" type="button">+ Add section</button>
  </div>
 
- <div class="section">
-  <h2>References and citations</h2>
-  <div class="sub">Add reliable sources supporting information in your article.</div>
+ <div class="panel">
+  <h2>References</h2>
+  <p class="muted">All citations used in your article are collected here.</p>
   <div id="citations"></div>
   <button class="secondary" id="addCitation" type="button">+ Add citation</button>
+ </div>
+
+ <div class="panel">
+  <h2>Article preview</h2>
+  <button class="secondary" id="previewBtn" type="button">Generate preview</button>
+  <div id="preview" class="preview" hidden style="margin-top:13px"></div>
  </div>
 
  <div class="actions">
   <button class="secondary" id="saveBtn" type="button">Save draft</button>
   <button id="submitBtn" type="button">Submit for review</button>
  </div>
- <div class="status" id="saveStatus">Your work is saved to your KINORA account.</div>
+ <div id="saveStatus">Changes are saved to your KINORA account when you save.</div>
 </main>
 
 <div id="modal">
  <div class="modalbox">
   <h2>Add citation</h2>
+  <p class="muted">The citation marker will be inserted at the cursor position in the selected section.</p>
   <label>Source URL</label>
   <input id="citeUrl" placeholder="https://example.com/article">
-  <button class="secondary" id="loadCitation" type="button" style="margin-top:10px">Load citation</button>
-  <label>Website / article title</label>
-  <input id="citeTitle" placeholder="Article title">
+  <button class="secondary" id="loadCitation" type="button" style="margin-top:9px">Load citation</button>
+  <label>Article / webpage title</label>
+  <input id="citeTitle" placeholder="Source title">
   <label>Publisher</label>
-  <input id="citePublisher" placeholder="Publisher name">
+  <input id="citePublisher" placeholder="Publisher">
   <label>Published date</label>
   <input id="citeDate" placeholder="YYYY-MM-DD">
   <div class="actions">
-   <button id="confirmCitation" type="button">Add to article</button>
+   <button id="confirmCitation" type="button">Insert citation</button>
    <button class="secondary" id="closeModal" type="button">Cancel</button>
   </div>
-  <div class="status" id="citeStatus"></div>
+  <p class="muted" id="citeStatus"></p>
  </div>
 </div>
 
 <script>
-(function(){
+(()=>{
 const cfg=window.KINORA_CONFIG;
-if(!cfg || !cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY){
- alert("Supabase configuration not found. Check config.js.");
- return;
-}
-
+if(!cfg?.SUPABASE_URL||!cfg?.SUPABASE_ANON_KEY){alert("Check config.js");return}
 const db=supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY);
-const params=new URLSearchParams(location.search);
-const articleId=params.get("id");
-let user=null;
-let articleStatus="draft";
-let citations=[];
-let mode="visual";
-
 const $=id=>document.getElementById(id);
-const visual=$("visual");
-const source=$("source");
-const message=$("message");
+const articleId=new URLSearchParams(location.search).get("id");
 
-function notify(text){
- message.textContent=text;
- message.style.display="block";
+let user=null;
+let status="draft";
+let sections=[];
+let infobox=[];
+let citations=[];
+let activeSection=0;
+let savedRange=null;
+let counter=0;
+
+function message(t){
+ $("message").textContent=t;
+ $("message").style.display="block";
  window.scrollTo({top:0,behavior:"smooth"});
 }
-function escapeHTML(value){
- return String(value??"").replace(/[&<>"']/g,c=>({
- "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
- }[c]));
+function esc(s){
+ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
-function currentHTML(){
- return mode==="visual"?visual.innerHTML:source.value;
+function newId(){return "s"+(++counter)+"_"+Date.now()}
+function makeSection(title,content="",type="section"){
+ return {id:newId(),type,title,content,collapsed:false,mode:"visual"};
 }
-function switchMode(next){
- if(next===mode)return;
- if(next==="source"){
-  source.value=currentHTML();
-  visual.style.display="none";
-  source.style.display="block";
-  $("formatTools").style.display="none";
+function rememberCursor(editor){
+ const selection=window.getSelection();
+ if(selection&&selection.rangeCount&&editor.contains(selection.anchorNode)){
+  savedRange=selection.getRangeAt(0).cloneRange();
+  activeSection=Number(editor.dataset.index);
+ }
+}
+function insertAtCursor(editor,text){
+ editor.focus();
+ if(savedRange){
+  const selection=window.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(savedRange);
+  const range=selection.getRangeAt(0);
+  range.deleteContents();
+  const node=document.createTextNode(text);
+  range.insertNode(node);
+  range.setStartAfter(node);
+  range.collapse(true);
+  selection.removeAllRanges();
+  selection.addRange(range);
+  savedRange=range.cloneRange();
  }else{
-  visual.innerHTML=source.value;
-  source.style.display="none";
-  visual.style.display="block";
-  $("formatTools").style.display="flex";
+  editor.append(document.createTextNode(text));
  }
- $("preview").style.display="none";
- mode=next;
+ sections[Number(editor.dataset.index)].content=editor.innerHTML;
 }
-$("visualBtn").onclick=()=>switchMode("visual");
-$("htmlBtn").onclick=()=>switchMode("source");
+function addInfo(label="",value=""){
+ const item={label,value};
+ infobox.push(item);
+ renderInfo();
+}
+function renderInfo(){
+ $("infoboxRows").innerHTML="";
+ infobox.forEach((item,i)=>{
+  const div=document.createElement("div");
+  div.className="infobox-row";
+  div.innerHTML=`<div class="row">
+   <input placeholder="Label" value="${esc(item.label)}" data-field="label">
+   <input placeholder="Value" value="${esc(item.value)}" data-field="value">
+   <button class="danger" type="button">×</button></div>`;
+  div.querySelectorAll("input").forEach(input=>{
+   input.oninput=()=>item[input.dataset.field]=input.value;
+  });
+  div.querySelector("button").onclick=()=>{infobox.splice(i,1);renderInfo()};
+  $("infoboxRows").append(div);
+ });
+}
+$("addInfo").onclick=()=>addInfo();
 
-document.querySelectorAll("[data-cmd]").forEach(btn=>{
- btn.onclick=()=>{
-  if(mode!=="visual")return;
-  const cmd=btn.dataset.cmd;
-  if(cmd==="formatBlock")document.execCommand(cmd,false,btn.dataset.value);
-  else document.execCommand(cmd,false,null);
-  visual.focus();
- };
-});
+function renderSections(){
+ const root=$("sections");
+ root.innerHTML="";
+ sections.forEach((s,i)=>{
+  const card=document.createElement("div");
+  card.className="section-card";
+  const head=document.createElement("div");
+  head.className="section-head";
 
-$("previewBtn").onclick=()=>{
- const p=$("preview");
- if(p.style.display==="block"){
-  p.style.display="none";return;
- }
- p.innerHTML=currentHTML();
- p.style.display="block";
- p.scrollIntoView({behavior:"smooth",block:"start"});
+  const toggle=document.createElement("button");
+  toggle.className="secondary";
+  toggle.textContent=s.collapsed?"+":"−";
+  toggle.onclick=()=>{s.collapsed=!s.collapsed;renderSections()};
+
+  const heading=document.createElement("input");
+  heading.value=s.type==="intro"?"Introduction":s.title;
+  heading.disabled=s.type==="intro";
+  heading.placeholder="Section heading";
+  heading.oninput=()=>s.title=heading.value;
+
+  head.append(toggle,heading);
+
+  if(s.type!=="intro"){
+   const up=document.createElement("button");
+   up.className="secondary";up.textContent="↑";
+   up.disabled=i===1;
+   up.onclick=()=>moveSection(i,-1);
+   const down=document.createElement("button");
+   down.className="secondary";down.textContent="↓";
+   down.disabled=i===sections.length-1;
+   down.onclick=()=>moveSection(i,1);
+   const del=document.createElement("button");
+   del.className="danger";del.textContent="×";
+   del.onclick=()=>{if(confirm("Delete this section?")){sections.splice(i,1);renderSections()}};
+   head.append(up,down,del);
+  }
+  card.append(head);
+
+  const body=document.createElement("div");
+  body.className="section-body";
+  body.hidden=s.collapsed;
+
+  const tools=document.createElement("div");
+  tools.className="toolbar";
+  const visualBtn=document.createElement("button");
+  visualBtn.className="secondary";visualBtn.textContent="Visual";
+  const htmlBtn=document.createElement("button");
+  htmlBtn.className="secondary";htmlBtn.textContent="HTML";
+  const citeBtn=document.createElement("button");
+  citeBtn.className="secondary";citeBtn.textContent="Add citation";
+  const boldBtn=document.createElement("button");
+  boldBtn.className="secondary";boldBtn.textContent="B";
+  const italicBtn=document.createElement("button");
+  italicBtn.className="secondary";italicBtn.textContent="I";
+  tools.append(visualBtn,htmlBtn,citeBtn,boldBtn,italicBtn);
+
+  const editor=document.createElement("div");
+  editor.className="editor";
+  editor.contentEditable="true";
+  editor.dataset.index=i;
+  editor.innerHTML=s.content||"";
+  editor.hidden=s.mode==="html";
+  editor.addEventListener("input",()=>s.content=editor.innerHTML);
+  editor.addEventListener("keyup",()=>rememberCursor(editor));
+  editor.addEventListener("mouseup",()=>rememberCursor(editor));
+  editor.addEventListener("touchend",()=>rememberCursor(editor));
+
+  const source=document.createElement("textarea");
+  source.className="source";
+  source.value=s.content||"";
+  source.hidden=s.mode!=="html";
+  source.addEventListener("input",()=>s.content=source.value);
+  source.addEventListener("keyup",()=>{activeSection=i;savedRange=null});
+
+  visualBtn.onclick=()=>{
+   if(s.mode==="html"){s.content=source.value;s.mode="visual";editor.innerHTML=s.content;editor.hidden=false;source.hidden=true}
+  };
+  htmlBtn.onclick=()=>{
+   if(s.mode==="visual"){s.content=editor.innerHTML;s.mode="html";source.value=s.content;source.hidden=false;editor.hidden=true}
+  };
+  citeBtn.onclick=()=>{
+   activeSection=i;
+   if(s.mode==="visual")rememberCursor(editor);
+   else savedRange=null;
+   openCitation();
+  };
+  boldBtn.onclick=()=>{
+   if(s.mode==="visual"){editor.focus();document.execCommand("bold");s.content=editor.innerHTML}
+  };
+  italicBtn.onclick=()=>{
+   if(s.mode==="visual"){editor.focus();document.execCommand("italic");s.content=editor.innerHTML}
+  };
+
+  body.append(tools,editor,source);
+  card.append(body);
+  root.append(card);
+ });
+}
+function moveSection(i,d){
+ const target=i+d;
+ if(target<1||target>=sections.length)return;
+ [sections[i],sections[target]]=[sections[target],sections[i]];
+ renderSections();
+}
+$("addSection").onclick=()=>{
+ sections.push(makeSection("New section"));
+ renderSections();
 };
-
-function addInfoRow(key="",value=""){
- const div=document.createElement("div");
- div.className="infobox-row";
- div.innerHTML=`
- <div class="row">
-  <input class="info-key" placeholder="Label (e.g. Born)" value="${escapeHTML(key)}">
-  <input class="info-value" placeholder="Value (e.g. 2000)" value="${escapeHTML(value)}">
-  <button class="danger remove-info" type="button">×</button>
- </div>`;
- div.querySelector(".remove-info").onclick=()=>div.remove();
- $("infoboxRows").appendChild(div);
+function openCitation(){
+ $("citeUrl").value="";$("citeTitle").value="";
+ $("citePublisher").value="";$("citeDate").value="";
+ $("citeStatus").textContent="";
+ $("modal").style.display="flex";
 }
-$("addInfo").onclick=()=>addInfoRow();
+$("addCitation").onclick=()=>{savedRange=null;openCitation()};
+$("closeModal").onclick=()=>$("modal").style.display="none";
 
 function renderCitations(){
  $("citations").innerHTML="";
- citations.forEach((c,index)=>{
+ citations.forEach((c,i)=>{
   const div=document.createElement("div");
   div.className="citation";
   const title=document.createElement("strong");
-  title.textContent=(index+1)+". "+(c.title||c.url||"Untitled source");
+  title.textContent=(i+1)+". "+(c.title||c.url);
   const details=document.createElement("small");
   details.textContent=[c.publisher,c.published].filter(Boolean).join(" · ");
   const link=document.createElement("a");
-  link.href=c.url;
-  link.target="_blank";
-  link.rel="noopener noreferrer";
+  link.href=c.url;link.target="_blank";link.rel="noopener noreferrer";
   link.textContent=c.url;
-  link.style.cssText="font-size:12px;overflow-wrap:anywhere;color:#c9f06b";
   const remove=document.createElement("button");
-  remove.className="danger";
-  remove.type="button";
-  remove.textContent="Remove";
-  remove.style.marginTop="9px";
-  remove.onclick=()=>{citations.splice(index,1);renderCitations();};
+  remove.className="danger";remove.textContent="Remove";
+  remove.onclick=()=>{citations.splice(i,1);renderCitations()};
   div.append(title,details,link,document.createElement("br"),remove);
-  $("citations").appendChild(div);
+  $("citations").append(div);
  });
 }
-$("addCitation").onclick=()=>{
- $("citeUrl").value="";
- $("citeTitle").value="";
- $("citePublisher").value="";
- $("citeDate").value="";
- $("citeStatus").textContent="";
- $("modal").style.display="flex";
-};
-$("closeModal").onclick=()=>$("modal").style.display="none";
-
 $("loadCitation").onclick=async()=>{
  const url=$("citeUrl").value.trim();
- if(!/^https?:\/\/.+/i.test(url)){
-  $("citeStatus").textContent="Enter a valid http or https URL.";
-  return;
- }
- $("citeStatus").textContent="Trying to retrieve source information...";
+ if(!/^https?:\/\/.+/i.test(url)){ $("citeStatus").textContent="Enter a valid URL.";return}
+ $("citeStatus").textContent="Loading source information...";
  try{
-  const response=await fetch("https://api.microlink.io/?url="+encodeURIComponent(url));
-  const result=await response.json();
+  const r=await fetch("https://api.microlink.io/?url="+encodeURIComponent(url));
+  const result=await r.json();
   if(result.status==="success"){
-   const data=result.data||{};
-   $("citeTitle").value=data.title||data.publisher||"";
-   $("citePublisher").value=data.publisher||new URL(url).hostname;
-   $("citeDate").value=data.date?data.date.slice(0,10):"";
-   $("citeStatus").textContent="Information loaded. Check and correct it before adding.";
-  }else{
-   $("citeStatus").textContent="Automatic loading failed. Enter the details manually.";
-  }
- }catch(e){
-  $("citeStatus").textContent="Could not load automatically. Enter the details manually.";
- }
+   $("citeTitle").value=result.data.title||"";
+   $("citePublisher").value=result.data.publisher||new URL(url).hostname;
+   $("citeDate").value=result.data.date?result.data.date.slice(0,10):"";
+   $("citeStatus").textContent="Loaded. Check the details before inserting.";
+  }else $("citeStatus").textContent="Could not retrieve details. Enter them manually.";
+ }catch(e){$("citeStatus").textContent="Automatic loading failed. Enter details manually."}
 };
 $("confirmCitation").onclick=()=>{
  const url=$("citeUrl").value.trim();
- if(!/^https?:\/\/.+/i.test(url)){
-  $("citeStatus").textContent="Please enter a valid source URL.";
-  return;
+ if(!/^https?:\/\/.+/i.test(url)){ $("citeStatus").textContent="Enter a valid URL.";return}
+ const index=citations.length+1;
+ citations.push({url,title:$("citeTitle").value.trim(),publisher:$("citePublisher").value.trim(),published:$("citeDate").value.trim()});
+ const marker=`<sup class="citation-marker">[${index}]</sup>`;
+ const s=sections[activeSection];
+ if(s){
+  if(s.mode==="visual"){
+   const card=[...document.querySelectorAll(".section-card")][activeSection];
+   const editor=card?.querySelector(".editor");
+   if(editor)insertAtCursor(editor,marker);
+   else s.content=(s.content||"")+marker;
+  }else{
+   s.content=(s.content||"")+` [${index}]`;
+  }
  }
- citations.push({
-  url,
-  title:$("citeTitle").value.trim(),
-  publisher:$("citePublisher").value.trim(),
-  published:$("citeDate").value.trim()
- });
  renderCitations();
+ renderSections();
  $("modal").style.display="none";
 };
-
-function getInfobox(){
- return [...document.querySelectorAll(".infobox-row")].map(row=>({
-  label:row.querySelector(".info-key").value.trim(),
-  value:row.querySelector(".info-value").value.trim()
- })).filter(item=>item.label||item.value);
+function referenceHTML(){
+ return `<ol>${citations.map((c,i)=>`<li><a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">${esc(c.title||c.url)}</a>${c.publisher?" — "+esc(c.publisher):""}${c.published?", "+esc(c.published):""}</li>`).join("")}</ol>`;
 }
-function getBody(){
- return currentHTML();
-}
-function makeContent(html){
- let output=html;
- citations.forEach((c,i)=>{
-  const marker=`<sup><a href="#reference-${i+1}" id="cite-${i+1}">[${i+1}]</a></sup>`;
-  output=output.replaceAll(`{{cite:${i+1}}}`,marker);
+function compileHTML(){
+ let html="";
+ sections.forEach(s=>{
+  const content=s.content||"";
+  html+=s.type==="intro"?content:`<h2>${esc(s.title)}</h2>${content}`;
  });
- output=output.replace(/<reflist\s*\/?>/gi,()=>{
-  return `<ol class="references">${citations.map((c,i)=>
-   `<li id="reference-${i+1}"><a href="${escapeHTML(c.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(c.title||c.url)}</a>${c.publisher?" — "+escapeHTML(c.publisher):""}${c.published?", "+escapeHTML(c.published):""} <a href="#cite-${i+1}">↑</a></li>`
-  ).join("")}</ol>`;
- });
- return output;
+ html=html.replace(/<reflist\s*\/?>/gi,referenceHTML);
+ if(/<reflist\s*\/?>/i.test(html)===false&&citations.length)html+=`<h2>References</h2>${referenceHTML()}`;
+ return html;
 }
-async function saveArticle(submit){
+function getBlocks(){
+ return sections.map(s=>({
+  type:s.type,title:s.title||"",content:s.content||""
+ }));
+}
+$("previewBtn").onclick=()=>{
+ const title=esc($("title").value);
+ const html=compileHTML();
+ $("preview").innerHTML=`<h1>${title}</h1>${html}`;
+ $("preview").hidden=false;
+ $("preview").scrollIntoView({behavior:"smooth"});
+};
+async function save(submit){
+ if(!user)return;
  const title=$("title").value.trim();
- if(!title){notify("Please enter an article title.");return;}
- if(articleStatus==="published"){
-  notify("Published articles need the proposed-edit workflow. They cannot be changed here.");
-  return;
- }
- const html=getBody();
- const content=makeContent(html);
+ if(!title){message("Enter an article title first.");return}
+ if(status!=="draft"){message("This article is not an editable draft.");return}
+ const body=compileHTML();
  const payload={
-  title,
-  summary:$("summary").value.trim(),
-  content,
-  body_source:html,
-  content_blocks:[],
-  infobox:getInfobox(),
-  citations,
+  title,summary:$("summary").value.trim(),category:$("category").value,
+  content:body,body_source:body,content_blocks:getBlocks(),
+  infobox:infobox,citations:citations,
   sources:citations.map(c=>c.url).join("\n"),
-  category:$("category").value,
   status:submit?"pending_review":"draft"
  };
- $("saveBtn").disabled=true;
- $("submitBtn").disabled=true;
+ $("saveBtn").disabled=true;$("submitBtn").disabled=true;
  $("saveStatus").textContent="Saving...";
  try{
   let result;
@@ -385,82 +431,76 @@ async function saveArticle(submit){
     .eq("id",articleId).eq("created_by",user.id).eq("status","draft")
     .select("id").maybeSingle();
   }else{
-   result=await db.from("articles").insert({
-    ...payload,created_by:user.id
-   }).select("id").single();
+   result=await db.from("articles").insert({...payload,created_by:user.id})
+    .select("id").single();
   }
   if(result.error)throw result.error;
-  if(!result.data){
-   throw new Error("No draft was updated. It may not belong to you or may no longer be a draft.");
-  }
-  if(!articleId){
-   location.replace("editor.html?id="+encodeURIComponent(result.data.id));
-   return;
-  }
+  if(!result.data)throw new Error("Draft was not updated. Check ownership and status.");
+  if(!articleId){location.replace("editor.html?id="+encodeURIComponent(result.data.id));return}
   if(submit){
-   articleStatus="pending_review";
-   $("saveBtn").disabled=true;
-   $("submitBtn").disabled=true;
-   $("saveStatus").textContent="Submitted for review. This article is now locked for editing.";
-   notify("Article submitted successfully for review!");
+   status="pending_review";
+   $("saveStatus").textContent="Submitted for review. Editing is now locked.";
+   message("Article submitted for review!");
   }else{
    $("saveStatus").textContent="Draft saved successfully.";
-   notify("Your draft has been saved!");
+   message("Your draft has been saved!");
   }
- }catch(error){
-  console.error(error);
-  notify("Save failed: "+(error.message||"Please try again."));
+ }catch(e){
+  console.error(e);
+  message("Save failed: "+e.message);
  }finally{
-  if(articleStatus==="draft"){
-   $("saveBtn").disabled=false;
-   $("submitBtn").disabled=false;
-  }
+  if(status==="draft"){$("saveBtn").disabled=false;$("submitBtn").disabled=false}
  }
 }
-$("saveBtn").onclick=()=>saveArticle(false);
-$("submitBtn").onclick=()=>{
- if(confirm("Submit this article for review? You won't be able to edit it after submission.")){
-  saveArticle(true);
- }
-};
+$("saveBtn").onclick=()=>save(false);
+$("submitBtn").onclick=()=>{if(confirm("Submit this article for review? You cannot edit it after submission."))save(true)};
 
+function importOldHTML(html){
+ const parser=new DOMParser();
+ const doc=parser.parseFromString(html||"","text/html");
+ const intro=[];
+ let current=null;
+ [...doc.body.childNodes].forEach(node=>{
+  if(node.nodeType===1&&/^H[2-3]$/.test(node.tagName)){
+   current=makeSection(node.textContent.trim(),"","section");
+   sections.push(current);
+  }else{
+   const target=current?current.content:null;
+   const text=node.outerHTML||node.textContent||"";
+   if(current)current.content+=text;
+   else intro.push(text);
+  }
+ });
+ sections.unshift(makeSection("Introduction",intro.join(""),"intro"));
+}
 async function init(){
  const {data:{session},error}=await db.auth.getSession();
- if(error||!session){
-  location.href="login.html";
-  return;
- }
+ if(error||!session){location.href="login.html";return}
  user=session.user;
 
  if(articleId){
   $("pageTitle").textContent="Edit draft";
   const {data,error}=await db.from("articles").select("*").eq("id",articleId).maybeSingle();
-  if(error||!data){
-   notify("Article not found or you don't have permission to access it.");
-   $("saveBtn").disabled=true;
-   $("submitBtn").disabled=true;
-   return;
-  }
+  if(error||!data){message("Article not found or unavailable.");$("saveBtn").disabled=true;$("submitBtn").disabled=true;return}
   if(data.status!=="draft"||data.created_by!==user.id){
-   articleStatus=data.status;
-   notify("This article is not an editable draft. Published and submitted articles require a separate review workflow.");
-   $("saveBtn").disabled=true;
-   $("submitBtn").disabled=true;
-   return;
+   status=data.status;message("Only your own drafts can be edited here.");
+   $("saveBtn").disabled=true;$("submitBtn").disabled=true;return;
   }
   $("title").value=data.title||"";
   $("summary").value=data.summary||"";
   $("category").value=data.category||"General";
-  visual.innerHTML=data.body_source||data.content||"";
-  source.value=data.body_source||data.content||"";
+  infobox=Array.isArray(data.infobox)?data.infobox:[];
   citations=Array.isArray(data.citations)?data.citations:[];
-  if(Array.isArray(data.infobox)){
-   data.infobox.forEach(item=>addInfoRow(item.label||"",item.value||""));
+  if(Array.isArray(data.content_blocks)&&data.content_blocks.length){
+   sections=data.content_blocks.map(b=>makeSection(b.title||"Introduction",b.content||"",b.type||"section"));
+   if(!sections.some(s=>s.type==="intro"))sections.unshift(makeSection("Introduction","","intro"));
+  }else{
+   importOldHTML(data.body_source||data.content||"");
   }
-  renderCitations();
  }else{
-  addInfoRow();
+  sections=[makeSection("Introduction","","intro")];
  }
+ renderInfo();renderCitations();renderSections();
 }
 init();
 })();

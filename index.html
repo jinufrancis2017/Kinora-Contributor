@@ -1,0 +1,213 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KINORA Contributor</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<style>
+:root{
+ --bg:#0b0d12;--panel:#151a24;--line:#30394a;
+ --muted:#9aa3b2;--white:#f4f5f7;--accent:#c9f06b;
+}
+*{box-sizing:border-box}
+body{
+ margin:0;background:var(--bg);color:var(--white);
+ font-family:system-ui,-apple-system,sans-serif;
+}
+header{
+ height:65px;padding:0 20px;border-bottom:1px solid var(--line);
+ display:flex;align-items:center;justify-content:space-between;
+}
+.logo{font-weight:900;font-size:21px;letter-spacing:2px}
+.logo span{color:var(--accent)}
+.profile{font-size:13px;color:var(--muted)}
+main{max-width:950px;margin:auto;padding:30px 18px 60px}
+.eyebrow{color:var(--accent);font-size:11px;font-weight:800;letter-spacing:2px}
+h1{font-size:29px;margin:8px 0}
+.sub{font-size:14px;color:var(--muted);line-height:1.6}
+.hero{
+ background:linear-gradient(135deg,#19221a,#151a24);
+ border:1px solid #35432c;border-radius:17px;padding:25px;
+ margin-bottom:25px;
+}
+.primary{
+ display:inline-block;background:var(--accent);color:#10130b;
+ padding:12px 17px;border-radius:9px;font-weight:800;
+ font-size:13px;text-decoration:none;margin-top:17px;
+}
+h2{font-size:17px;margin:28px 0 13px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+.stat{
+ background:var(--panel);border:1px solid var(--line);
+ padding:16px;border-radius:12px;
+}
+.stat strong{display:block;font-size:25px}
+.stat span{font-size:12px;color:var(--muted)}
+.panel{
+ background:var(--panel);border:1px solid var(--line);
+ padding:18px;border-radius:13px;
+}
+.quick{
+ display:grid;grid-template-columns:repeat(2,1fr);gap:11px;
+}
+.quick a{
+ background:var(--panel);border:1px solid var(--line);
+ padding:17px;border-radius:12px;text-decoration:none;
+}
+.quick strong{display:block;font-size:14px;margin-bottom:5px}
+.quick span{font-size:12px;color:var(--muted)}
+.article{
+ padding:14px 0;border-bottom:1px solid var(--line);
+}
+.article:last-child{border:0}
+.article strong{font-size:14px}
+.article p{font-size:12px;color:var(--muted);margin:6px 0}
+.status{font-size:11px;color:var(--accent)}
+.muted{color:var(--muted);font-size:13px}
+button{
+ background:none;border:1px solid var(--line);color:var(--white);
+ padding:9px 12px;border-radius:8px;font-size:12px;
+}
+#notice{margin:15px 0;color:var(--muted);font-size:13px}
+@media(max-width:480px){
+ .stats{grid-template-columns:repeat(2,1fr)}
+ h1{font-size:25px}
+}
+</style>
+</head>
+<body>
+<header>
+ <a class="logo" href="index.html">KINORA<span>.</span></a>
+ <div class="profile" id="username">Contributor</div>
+</header>
+
+<main>
+ <section class="hero">
+  <div class="eyebrow">CONTRIBUTOR WORKSPACE</div>
+  <h1>Build knowledge.<br>One article at a time.</h1>
+  <div class="sub">Create, improve and maintain encyclopedia articles on KINORA.</div>
+  <a class="primary" href="editor.html">+ Create new article</a>
+ </section>
+
+ <h2>Your contributions</h2>
+ <section class="stats">
+  <div class="stat"><strong id="total">—</strong><span>Total articles</span></div>
+  <div class="stat"><strong id="drafts">—</strong><span>Drafts</span></div>
+  <div class="stat"><strong id="pending">—</strong><span>Under review</span></div>
+  <div class="stat"><strong id="published">—</strong><span>Published</span></div>
+  <div class="stat"><strong id="rejected">—</strong><span>Rejected</span></div>
+ </section>
+
+ <h2>Workspace</h2>
+ <section class="quick">
+  <a href="editor.html">
+   <strong>＋ Create article</strong>
+   <span>Start a new encyclopedia article</span>
+  </a>
+  <a href="#myarticles">
+   <strong>▤ My articles</strong>
+   <span>Manage your contributions</span>
+  </a>
+  <a href="#myarticles">
+   <strong>◷ Drafts</strong>
+   <span>Continue unfinished articles</span>
+  </a>
+  <a href="#myarticles">
+   <strong>✓ Submissions</strong>
+   <span>Check your review status</span>
+  </a>
+ </section>
+
+ <h2 id="myarticles">Recent articles</h2>
+ <section class="panel">
+  <div id="notice">Loading your contributions...</div>
+  <div id="articleList"></div>
+ </section>
+</main>
+
+<script>
+(async()=>{
+ const notice=document.getElementById('notice');
+ const list=document.getElementById('articleList');
+
+ function safe(value){
+  return String(value??'').replace(/[&<>"']/g,c=>({
+   '&':'&amp;','<':'&lt;','>':'&gt;',
+   '"':'&quot;',"'":'&#39;'
+  }[c]));
+ }
+
+ try{
+  const cfg=window.KINORA_CONFIG;
+  if(!cfg?.SUPABASE_URL||!cfg?.SUPABASE_ANON_KEY){
+   throw new Error('Supabase configuration missing.');
+  }
+
+  const db=window.supabase.createClient(
+   cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY
+  );
+
+  const {data:{session},error:authError}=await db.auth.getSession();
+  if(authError)throw authError;
+
+  if(!session){
+   notice.textContent='Please sign in to your KINORA account.';
+   const link=document.createElement('a');
+   link.href='https://jinufrancis2017.github.io/Kinora/login.html';
+   link.textContent='Sign in to KINORA';
+   link.style.color='#c9f06b';
+   notice.appendChild(document.createElement('br'));
+   notice.appendChild(link);
+   return;
+  }
+
+  const {data:profile}=await db.from('profiles')
+   .select('username')
+   .eq('id',session.user.id)
+   .maybeSingle();
+
+  document.getElementById('username').textContent=
+   profile?.username||'Contributor';
+
+  const {data,error}=await db.from('articles')
+   .select('id,title,summary,status,created_at')
+   .eq('created_by',session.user.id)
+   .order('created_at',{ascending:false});
+
+  if(error)throw error;
+
+  const articles=data||[];
+  const count=status=>articles.filter(a=>a.status===status).length;
+
+  document.getElementById('total').textContent=articles.length;
+  document.getElementById('drafts').textContent=count('draft');
+  document.getElementById('pending').textContent=count('pending_review');
+  document.getElementById('published').textContent=count('published');
+  document.getElementById('rejected').textContent=count('rejected');
+
+  notice.textContent=articles.length?'Your latest contributions':'No articles created yet.';
+
+  articles.slice(0,10).forEach(a=>{
+   const item=document.createElement('div');
+   item.className='article';
+   item.innerHTML=`
+    <strong>${safe(a.title||'Untitled article')}</strong>
+    <p>${safe(a.summary||'No description')}</p>
+    <span class="status">${safe((a.status||'draft').replace('_',' '))}</span>
+    <div style="margin-top:9px">
+     <a style="color:#c9f06b;font-size:12px"
+       href="editor.html?id=${encodeURIComponent(a.id)}">Edit article →</a>
+    </div>`;
+   list.appendChild(item);
+  });
+ }catch(error){
+  console.error(error);
+  notice.textContent='Unable to load contributions: '+error.message;
+ }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sign in — KINORA Contributor</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<style>
+:root{
+ --bg:#0b0d12;--panel:#151a24;--line:#30394a;
+ --muted:#9aa3b2;--white:#f4f5f7;--accent:#c9f06b;
+}
+*{box-sizing:border-box}
+body{
+ margin:0;min-height:100vh;background:var(--bg);color:var(--white);
+ font-family:system-ui,-apple-system,sans-serif;
+ display:grid;place-items:center;padding:20px;
+}
+.login{
+ width:100%;max-width:410px;background:var(--panel);
+ border:1px solid var(--line);border-radius:17px;padding:27px;
+}
+.logo{text-align:center;font-size:25px;font-weight:900;letter-spacing:3px}
+.logo span{color:var(--accent)}
+.tag{text-align:center;color:var(--muted);font-size:11px;letter-spacing:2px;margin-top:5px}
+h1{font-size:23px;margin:30px 0 5px}
+.sub{font-size:13px;color:var(--muted);margin-bottom:24px}
+label{display:block;font-size:12px;margin:17px 0 7px}
+input{
+ width:100%;padding:13px;background:#0d1119;
+ border:1px solid var(--line);border-radius:9px;
+ color:var(--white);font-size:14px;outline:none;
+}
+input:focus{border-color:var(--accent)}
+button{
+ width:100%;margin-top:22px;padding:13px;
+ border:0;border-radius:9px;background:var(--accent);
+ color:#10130b;font-weight:800;font-size:14px;
+}
+button:disabled{opacity:.6}
+#message{font-size:12px;margin-top:16px;line-height:1.5;color:var(--muted)}
+.back{text-align:center;margin-top:22px;font-size:12px;color:var(--muted)}
+a{color:var(--accent);text-decoration:none}
+</style>
+</head>
+<body>
+<section class="login">
+ <div class="logo">KINORA<span>.</span></div>
+ <div class="tag">CONTRIBUTOR WORKSPACE</div>
+
+ <h1>Welcome back.</h1>
+ <div class="sub">Sign in with your existing KINORA account.</div>
+
+ <form id="loginForm">
+  <label for="email">Email address</label>
+  <input id="email" type="email" autocomplete="email"
+   placeholder="you@example.com" required>
+
+  <label for="password">Password</label>
+  <input id="password" type="password"
+   autocomplete="current-password" placeholder="Your password" required>
+
+  <button id="submit" type="submit">Sign in</button>
+ </form>
+
+ <div id="message"></div>
+ <div class="back">
+  Don't have a KINORA account?
+  <a href="https://jinufrancis2017.github.io/Kinora/signup.html">Create account</a>
+ </div>
+ <div class="back">
+  <a href="index.html">← Back to Contributor</a>
+ </div>
+</section>
+
+<script>
+(async()=>{
+ const message=document.getElementById('message');
+ const form=document.getElementById('loginForm');
+ const button=document.getElementById('submit');
+
+ try{
+  const cfg=window.KINORA_CONFIG;
+  if(!cfg?.SUPABASE_URL||!cfg?.SUPABASE_ANON_KEY){
+   throw new Error('Supabase configuration missing. Check config.js.');
+  }
+
+  const db=window.supabase.createClient(
+   cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY
+  );
+
+  const {data:{session}}=await db.auth.getSession();
+  if(session){
+   location.replace('index.html');
+   return;
+  }
+
+  form.addEventListener('submit',async(e)=>{
+   e.preventDefault();
+   button.disabled=true;
+   button.textContent='Signing in...';
+   message.textContent='';
+
+   try{
+    const {error}=await db.auth.signInWithPassword({
+     email:document.getElementById('email').value.trim(),
+     password:document.getElementById('password').value
+    });
+
+    if(error)throw error;
+
+    message.textContent='Login successful. Opening workspace...';
+    location.replace('index.html');
+   }catch(error){
+    message.textContent=error.message;
+    button.disabled=false;
+    button.textContent='Sign in';
+   }
+  });
+ }catch(error){
+  message.textContent=error.message;
+ }
+})();
+</script>
+</body>
+</html>
